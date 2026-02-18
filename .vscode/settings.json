@@ -1,0 +1,20 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/tmp/**": true,
+        "**/CVS": true,
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/dist/**": true,
+        "**/log/**": true,
+        "**/.fdk/**": true
+    },
+    "hide-files.files": []
+}
