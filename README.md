@@ -1,82 +1,227 @@
 # Basta
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+## Library Structure
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+All libraries MUST be placed inside the `libs/` folder, organized by domain. Each library follows a domain-specific directory structure pattern organized by functionality types:
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Finish your CI setup
-
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/J86R8S2xUx)
-
-
-## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx serve demo1
+```typescript
+libs/[domain]/[library-name]/src/
+├── _store/                  # State management
+│   ├── features/            # Store feature slices
+│   └── [library-name].store.ts # State definition
+├── components/              # Main components and smart components
+│   └── [component-name]/    # Component folders with HTML, CSS, TS files
+├── dialogs/                 # Dialog components
+│   └── [dialog-name]/       # Dialog folders with HTML, CSS, TS files
+├── services/                # Business logic services
+│   └── [service-name]/      # Service folders with implementation and tests
+├── util/                    # Utility functions and helpers
+│   └── [utility-files].ts   # Pure utility functions
+├── feature.routes.ts        # Route definitions (for feature libraries)
+└── index.ts                 # Public API
 ```
 
-To create a production bundle:
+### Domain Organization
 
-```sh
-npx nx build demo1
+Libraries are organized into domain-specific folders within `libs/`:
+
+- **domain1/**: User and role management functionality
+- **domain2/**: User and role management functionality
+- **shared/**: Common utilities and shared components
+
+### Key Directory Structure Concepts
+
+1. **components/** - Contains main application components:
+   - Smart components that handle business logic and data fetching
+   - Feature-specific components with state management integration
+   - Components organized in individual folders with HTML, CSS, and TypeScript files
+
+2. **dialogs/** - Contains modal and dialog components:
+   - Dialog components for user interactions (add, edit, delete operations)
+   - Confirmation dialogs and forms
+   - Each dialog in its own folder with complete component files
+
+3. **services/** - Contains business logic and data access:
+   - Services with HTTP calls and API integration
+   - Business rule implementations
+   - Data transformation and validation logic
+   - Each service in its own folder with implementation and test files
+
+4. **util/** - Contains utility functions and helpers:
+   - Pure functions for data manipulation
+   - Helper functions for common operations
+   - Type definitions and constants
+   - Shared utility logic across the library
+
+5. **\_store/** - Contains state management logic:
+   - NgRx Signal Store with feature-based architecture
+   - Store feature slices organized in the `features/` subfolder
+   - Main store composes multiple features
+   - **Key Principles**:
+     - **Immutability**: Never mutate store data directly, only through store methods
+     - **Single Responsibility**: All data transformations belong in the store (computed/methods), NOT in components
+
+```typescript
+// Main store: libs/[domain]/domain-[name]/src/_store/[name].store.ts
+import { signalStore } from '@ngrx/signals';
+import { withTreeShakableDevTools } from '@sdc/shared/util-shared';
+import { withMyEntityFeature } from './features/my-entity.store-feature';
+
+export const MyStore = signalStore({ providedIn: 'root' }, withTreeShakableDevTools('MyStore'), withMyEntityFeature());
 ```
 
-To see all available targets to run for a project, run:
+```typescript
+// Feature: libs/[domain]/domain-[name]/src/_store/features/my-entity.store-feature.ts
+import { computed, inject } from '@angular/core';
+import { patchState, signalStoreFeature, type, withComputed, withMethods, withState } from '@ngrx/signals';
+import { entityConfig, setAllEntities, withEntities } from '@ngrx/signals/entities';
+import { ToastService } from '@siemens/ix-angular/standalone';
+import { parseError } from '@sdc/shared/util-shared';
+import { firstValueFrom } from 'rxjs';
 
-```sh
-npx nx show project demo1
+type MyState = { isLoading: boolean; selectedId: string | undefined };
+
+const initialState: MyState = { isLoading: false, selectedId: undefined };
+
+const entityConfig = entityConfig({
+  entity: type<MyEntity>(),
+  collection: 'items',
+  selectId: (e) => e.id,
+});
+
+export const withMyEntityFeature = () =>
+  signalStoreFeature(
+    withState(initialState),
+    withEntities(entityConfig),
+    withComputed((store) => ({
+      selectedItem: computed(() => store.itemsEntityMap()[store.selectedId() ?? '']),
+      itemsCount: computed(() => store.itemsEntities().length),
+    })),
+    withMethods((store, api = inject(MyApiService), toasty = inject(ToastService)) => ({
+      async loadItems() {
+        patchState(store, { isLoading: true });
+        try {
+          const { items } = await firstValueFrom(api.getItems());
+          patchState(store, setAllEntities(items, entityConfig));
+        } catch (error: unknown) {
+          const parsed = parseError(error);
+          await toasty.show({ type: 'error', message: parsed.detail ?? $localize`Load failed` });
+        } finally {
+          patchState(store, { isLoading: false });
+        }
+      },
+    })),
+  );
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+6. **feature.routes.ts** - Defines routes for the feature:
+   - Exports a `routes` constant that defines all routes
+   - Implements lazy loading of components
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Testing Files
 
-## Add new projects
+Each service and component must have an associated spec file for testing:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+- Service spec files: `[service-name].service.spec.ts`
+- Component spec files: `[component-name].component.spec.ts`
 
-Use the plugin's generator to create new projects.
+These spec files should be placed in the same directory as the file they're testing.
 
-To generate a new application, use:
+## Domain Architecture
 
-```sh
-npx nx g @nx/angular:app demo
+The project follows a domain-driven architecture approach using Nx tags to enforce module boundaries and prevent unwanted dependencies between different domains.
+
+### Visual Architecture Overview
+
+This architecture illustrates our domain-driven approach with vertical slices organized by business domains and horizontal layers within each domain. The structure ensures separation of concerns while allowing controlled cross-domain communication.
+
+### Domain Tags
+
+Libraries are organized into domains using a tag-based system:
+
+```typescript
+// Example project.json
+{
+  "name": "my-capability",
+  "tags": ["scope:feature", "domain:capability"]
+}
 ```
 
-To generate a new library, use:
+### Available Scopes
 
-```sh
-npx nx g @nx/angular:lib mylib
-```
+- **`scope:app`** - Applications (e.g., sdc-console, sdc-landingpage)
+- **`scope:feature`** - Feature libraries containing business logic
+- **`scope:api`** - API layer libraries for domain-specific endpoints
+- **`scope:shared`** - Shared utilities and components used across domains
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+### Available Domains
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **`domain:capability`** - Libraries related to capability management and execution
+- **`domain:canvas`** - Libraries related to visual data flow and canvas functionality
 
+### Dependency Rules
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The module boundary rules are enforced via ESLint configuration:
 
-## Install Nx Console
+1. **Apps** (`scope:app`) can only depend on `scope:shared` libraries
+2. **Feature libraries** (`scope:feature`) can only depend on `scope:api` and `scope:shared` libraries
+3. **Domain isolation**: Libraries within a domain can access other libraries from the same domain:
+   - `domain:capability` + `scope:feature` can access other `domain:capability` libraries, `scope:api`, and `scope:shared`
+   - `domain:canvas` + `scope:feature` can access other `domain:canvas` libraries, `scope:api`, and `scope:shared`
+4. **Cross-domain dependencies are forbidden**: Libraries from different domains cannot depend on each other directly
+5. **Shared libraries** (`scope:shared`) can only depend on other `scope:shared` libraries
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+### Domain Communication
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+When domains need to communicate with each other, they must use:
 
-## Useful links
+- **`scope:shared`** libraries for common utilities and components
+- **`scope:api`** libraries for API communication
+- Events or state management solutions in the shared layer
 
-Learn more:
+### Adding New Domains
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/tutorials/angular-monorepo-tutorial?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+When adding a new domain:
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+1. Create libraries with appropriate tags:
+
+   ```json
+   {
+     "tags": ["scope:feature", "domain:your-new-domain"]
+   }
+   ```
+
+2. Add the domain rule to `eslint.config.mjs`:
+
+   ```javascript
+   {
+     allSourceTags: ['domain:your-new-domain', 'scope:feature'],
+     onlyDependOnLibsWithTags: ['domain:your-new-domain', 'scope:api', 'scope:shared'],
+   }
+   ```
+
+This architecture ensures clean separation of concerns and prevents tight coupling between different business domains.
+
+## Shared Resources
+
+**IMPORTANT**: Cross-referencing between feature libraries is strictly forbidden. For shared functionality across features, the shared library must be used.
+
+The `libs/shared/` directory contains resources that can be used across the entire application:
+
+1. **shared/ui** - Contains reusable dumb components:
+   - Generic UI components that can be used in any feature
+   - All components receive data via @Input properties
+   - Components emit events via @Output properties
+   - No state management
+   - No application logic
+   - No direct service dependencies or business logic
+
+2. **shared/util** - Contains application-wide utility functions:
+   - Helper functions and common utilities
+   - Type definitions used across multiple features
+   - Constants and configuration values
+
+3. **shared/api** - Contains auto-generated API clients:
+   - Auto-generated from OpenAPI specifications
+   - Services for interacting with backend APIs
+   - Models and interfaces representing API data structures
