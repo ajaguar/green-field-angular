@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "library-generator",
+  "title": "Create a Library",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Select the domain name.",
+      "enum": [
+        "administration",
+        "backend",
+        "canvas",
+        "capabilities",
+        "chat",
+        "community",
+        "credentials",
+        "file-management",
+        "hub",
+        "info",
+        "landingpage",
+        "parameter-management",
+        "payments-usage",
+        "profile",
+        "project-dashboard",
+        "project-management",
+        "service-accounts",
+        "sgpt-shell",
+        "shared",
+        "the-lab",
+        "workspace-hub"
+      ],
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "pattern": "administration|backend|canvas|capabilities|chat|community|credentials|file-management|hub|info|landingpage|parameter-management|payments-usage|profile|project-dashboard|project-management|service-accounts|sgpt-shell|shared|the-lab|workspace-hub",
+      "x-prompt": {
+        "message": "In which domain would you like to generate this library?",
+        "type": "list",
+        "items": [
+          {
+            "value": "administration",
+            "label": "administration"
+          },
+          {
+            "value": "backend",
+            "label": "backend"
+          },
+          {
+            "value": "canvas",
+            "label": "canvas"
+          },
+          {
+            "value": "capabilities",
+            "label": "capabilities"
+          },
+          {
+            "value": "chat",
+            "label": "chat"
+          },
+          {
+            "value": "community",
+            "label": "community"
+          },
+          {
+            "value": "credentials",
+            "label": "credentials"
+          },
+          {
+            "value": "file-management",
+            "label": "file-management"
+          },
+          {
+            "value": "hub",
+            "label": "hub"
+          },
+          {
+            "value": "info",
+            "label": "info"
+          },
+          {
+            "value": "landingpage",
+            "label": "landingpage"
+          },
+          {
+            "value": "parameter-management",
+            "label": "parameter-management"
+          },
+          {
+            "value": "payments-usage",
+            "label": "payments-usage"
+          },
+          {
+            "value": "profile",
+            "label": "profile"
+          },
+          {
+            "value": "project-dashboard",
+            "label": "project-dashboard"
+          },
+          {
+            "value": "project-management",
+            "label": "project-management"
+          },
+          {
+            "value": "service-accounts",
+            "label": "service-accounts"
+          },
+          {
+            "value": "sgpt-shell",
+            "label": "sgpt-shell"
+          },
+          {
+            "value": "shared",
+            "label": "shared"
+          },
+          {
+            "value": "the-lab",
+            "label": "the-lab"
+          },
+          {
+            "value": "workspace-hub",
+            "label": "workspace-hub"
+          }
+        ]
+      }
+    },
+    "type": {
+      "type": "string",
+      "description": "Select the library type.",
+      "enum": ["api", "domain", "feature", "shared", "ui", "util"],
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "pattern": "api|domain|feature|shared|ui|util",
+      "x-prompt": {
+        "message": "Which type of library would you like to generate?",
+        "type": "list",
+        "items": [
+          {
+            "value": "api",
+            "label": "API"
+          },
+          {
+            "value": "domain",
+            "label": "Domain"
+          },
+          {
+            "value": "feature",
+            "label": "Feature"
+          },
+          {
+            "value": "shared",
+            "label": "Shared"
+          },
+          {
+            "value": "ui",
+            "label": "UI"
+          },
+          {
+            "value": "util",
+            "label": "Utilities"
+          }
+        ]
+      }
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the library. (Optional)",
+      "$default": {
+        "$source": "argv",
+        "index": 2
+      },
+      "x-prompt": "What name would you like to use for the library? (Optional)",
+      "pattern": "^(?:[a-zA-Z].*)?$"
+    },
+    "routing": {
+      "description": "Add routing to the generated feature library.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": ["domain", "type"]
+}

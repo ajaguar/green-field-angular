@@ -1,0 +1,3 @@
+import { createAnalogViteConfig } from '<%= rootOffset %>vite.base.config';
+
+export default createAnalogViteConfig({}, __dirname);
