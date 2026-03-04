@@ -32,5 +32,7 @@ nx generate @nx/eslint:convert-to-inferred
 
 "Write code that write code for you!"
 
-`npx nx generate @sdc/workspace-plugin:domain --name=chat --no-interactive`
+`npx nx generate @sdc/workspace-plugin:domain --name=history --no-interactive`
+
+`npx nx generate @sdc/workspace-plugin:library --domain=history --type=feature --no-interactive`
 
