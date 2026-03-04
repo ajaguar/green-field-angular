@@ -7,16 +7,38 @@
     "domain": {
       "type": "string",
       "description": "Select the domain name.",
-      "enum": [],
+      "enum": ["chat"],
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "pattern": "",
+      "pattern": "chat",
       "x-prompt": {
         "message": "In which domain would you like to generate this library?",
         "type": "list",
-        "items": []
+        "items": [
+          {
+            "value": "chat",
+            "label": "chat"
+          }
+        ]
+      }
+    },
+    "type": {
+      "type": "string",
+      "description": "Select the library type.",
+      "enum": ["api", "domain", "feature", "shared", "ui", "util"],
+      "x-prompt": {
+        "message": "What type of library would you like to generate?",
+        "type": "list",
+        "items": [
+          { "value": "api", "label": "api" },
+          { "value": "domain", "label": "domain" },
+          { "value": "feature", "label": "feature" },
+          { "value": "shared", "label": "shared" },
+          { "value": "ui", "label": "ui" },
+          { "value": "util", "label": "util" }
+        ]
       }
     },
     "name": {

@@ -60,6 +60,15 @@ export default [
               sourceTag: 'domain:shared',
               onlyDependOnLibsWithTags: ['domain:shared'],
             },
+            {
+              sourceTag: 'domain:chat',
+              onlyDependOnLibsWithTags: [
+                'domain:chat',
+                'domain:shared',
+                'domain:backend',
+                'scope:api',
+              ],
+            },
           ],
         },
       ],
