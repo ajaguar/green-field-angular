@@ -45,6 +45,10 @@ function updateEslintConfig(tree: Tree, domainName: string) {
 
   findDepConstraints(sourceFile);
 
+  if (!depConstraintsNode) {
+    throw new Error(`Could not find 'depConstraints' array in ${ESLINT_CONFIG}. Ensure '@nx/enforce-module-boundaries' rule is configured.`);
+  }
+
   for (const element of depConstraintsNode.elements) {
     if (ts.isObjectLiteralExpression(element)) {
       for (const prop of element.properties) {
