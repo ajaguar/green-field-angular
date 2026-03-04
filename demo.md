@@ -15,9 +15,9 @@
 ```
 
 # Simplify ESlint (Step#2)
-nx generate @nx/eslint:convert-to-inferred
+`nx generate @nx/eslint:convert-to-inferred`
 -> you can now remove project specific lint
-- [](/eslint.config.mjs)
+- [eslint.config.mjs](/eslint.config.mjs)
 
 # Add Readme and AI support (Step#3)
 
@@ -35,4 +35,3 @@ nx generate @nx/eslint:convert-to-inferred
 `npx nx generate @sdc/workspace-plugin:domain --name=history --no-interactive`
 
 `npx nx generate @sdc/workspace-plugin:library --domain=history --type=feature --no-interactive`
-
